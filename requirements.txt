@@ -1,0 +1,8 @@
+vllm == 0.8.5post1
+grpcio
+grpcio-tools
+protobuf
+kademlia
+requests
+accelerate
+autoawq
