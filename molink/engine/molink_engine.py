@@ -621,20 +621,15 @@ class MolinkEngine(AsyncLLMEngine):
         # equal to pipeline size
         base_batch_num = 2
         num_requests = len(self.engine.scheduler[0].waiting) + len(self.engine.scheduler[0].running)
+        batch_num = 1
         if num_requests <= 1:
-            return 1
+            batch_num = 1
         if num_requests <= base_batch_num:
-            return base_batch_num
-        
-        return base_batch_num
+            batch_num = base_batch_num
+        else:
+            batch_num = base_batch_num
 
-        for batch_num in range(base_batch_num + 1, self.engine.max_batch_num + 1):
-            schedule_limit = int(num_requests / batch_num + 1)
-            self.engine.scheduler[0].set_schedule_limit(schedule_limit)
-            single_batch_size = int(num_requests / batch_num)
-            single_compute_latency = self.culculate_compute_latency(1, single_batch_size) + self.get_avg_system_overhead()
-            single_transmission_latency = self.culculate_transmission_latency(1, single_batch_size)
-            bubble = (base_batch_num) * single_transmission_latency
-            if (batch_num - base_batch_num) * single_compute_latency >= bubble:
-                return batch_num 
-        return self.engine.max_batch_num
+        schedule_limit = int(num_requests / batch_num + 1)
+        self.engine.scheduler[0].set_schedule_limit(schedule_limit)
+        
+        return batch_num
